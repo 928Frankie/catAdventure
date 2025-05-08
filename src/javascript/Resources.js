@@ -33,7 +33,7 @@ export default class Resources extends EventEmitter {
         // Load cat model
         this.toLoad++
         this.loaders.gltfLoader.load(
-            './models/orange_cat.glb',
+            './models/orange_cat_animated.glb',
             (file) => {
                 this.items.catModel = file
                 this.loaded++
@@ -63,6 +63,7 @@ export default class Resources extends EventEmitter {
             }
         )
 
+        // Load water bowl model
         this.toLoad++
         this.loaders.gltfLoader.load(
             './models/water-bowl.glb',
@@ -74,6 +75,7 @@ export default class Resources extends EventEmitter {
         )
     
 
+        // Load food bowl model
         this.toLoad++
         this.loaders.gltfLoader.load(
             './models/double-bowl.glb',
@@ -84,17 +86,68 @@ export default class Resources extends EventEmitter {
             }
         )
 
-        // Load food bowl model
 
+
+        // Load cat-bed model
         this.toLoad++
         this.loaders.gltfLoader.load(
-            './models/cat-bed-icon.glb',  // Path to your bed model
+            './models/cat-bed-icon.glb',
+            // Path to your bed model
             (file) => {
                 this.items.bedModel = file
                 this.loaded++
                 this.checkAllLoaded()
-    }
-)
+            }
+        )
+
+
+        //load hint signs
+
+        this.toLoad++
+        this.loaders.gltfLoader.load(
+            './models/signs/exclamation_point.glb',
+            
+            (file) => {
+                this.items.waterSignModel = file
+                this.loaded++
+                this.checkAllLoaded()
+            }
+        )
+
+        this.toLoad++
+        this.loaders.gltfLoader.load(
+            //'./models/signs/pumping_heart_model.glb',
+            './models/signs/exclamation_point.glb',
+            (file) => {
+                this.items.foodSignModel = file
+                this.loaded++
+                this.checkAllLoaded()
+            }
+        )
+        
+        // Sleep hint sign
+        this.toLoad++
+        this.loaders.gltfLoader.load(
+            //'./models/signs/pumping_heart_model.glb',
+            './models/signs/exclamation_point.glb',
+            (file) => {
+                this.items.sleepSignModel = file
+                this.loaded++
+                this.checkAllLoaded()
+            }
+        )
+
+
+        // this.toLoad++
+        // this.loaders.gltfLoader.load(
+        //     './models/scene/fence.glb',  // Path to your bed model
+        //     (file) => {
+        //         this.items.fenceModel = file
+        //         this.loaded++
+        //         this.checkAllLoaded()
+        //     }
+        // )
+        
     }
 
     checkAllLoaded() {

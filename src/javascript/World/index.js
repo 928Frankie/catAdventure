@@ -6,79 +6,97 @@ import Toy from './Toy.js'
 import WaterBowl from './WaterBowl.js'
 import FoodBowl from './FoodBowl.js'
 import Bed from './Bed.js'
+import InteractionSystem from './InteractionSystem.js'
 
 
 export default class World {
     constructor(application) {
-        this.application = application
-        this.scene = this.application.scene
-        this.resources = this.application.resources
-        this.time = this.application.time
+        this.application = application;
+        this.scene = this.application.scene;
+        this.resources = this.application.resources;
+        this.time = this.application.time;
+        this.camera = this.application.camera;
 
         // Wait for resources
         this.resources.on('ready', () => {
-            // Setup
-            console.log('Creating garden...')
-            this.garden = new Garden(this)
+            // Setup interaction system first (other objects will reference it)
+            console.log('Setting up interaction system...');
+            this.interactionSystem = new InteractionSystem(this);
             
-            console.log('Creating cat...')
-            this.cat = new Cat(this)
+            // Setup environment
+            console.log('Creating garden...');
+            this.garden = new Garden(this);
             
-            this.toy = new Toy(this)
+            // Create cat
+            console.log('Creating cat...');
+            this.cat = new Cat(this);
+            
+            // Create toy
+            this.toy = new Toy(this);
 
-            console.log('Creating interactive objects...')
-            this.interactiveObjects = []
+            console.log('Creating interactive objects...');
+            this.interactiveObjects = [];
 
+            // Create water bowl
             this.waterBowl = new WaterBowl(this, {
                 position: new THREE.Vector3(10, 0, 2),
-                scale: new THREE.Vector3(0.3, 0.3, 0.3)
-            
-            })
-            this.interactiveObjects.push(this.waterBowl)
+                scale: new THREE.Vector3(0.3, 0.3, 0.3),
+            });
+            this.interactiveObjects.push(this.waterBowl);
             
             // Create food bowl
             this.foodBowl = new FoodBowl(this, {
-                position: new THREE.Vector3(-3, 0, 2),
-                scale: new THREE.Vector3(8, 8, 8)
-            })
-            this.interactiveObjects.push(this.foodBowl)
-
-            //create new Bed
+                position: new THREE.Vector3(-6, 0, 2),
+                scale: new THREE.Vector3(8, 8, 8),
+            });
+            this.interactiveObjects.push(this.foodBowl);
+            
+            // Create cat bed
             this.bed = new Bed(this, {
-                position: new THREE.Vector3(10, 0, 10),  // Positioning the bed
-                scale: new THREE.Vector3(5, 5, 5),
-                rotation: new THREE.Euler(0, Math.PI / 2, 0),  // Rotate it if needed
-                triggerDistance: 2.5  // Adjust as needed
-            })
-            this.interactiveObjects.push(this.bed)
-
+                position: new THREE.Vector3(0, 0, -10),
+                scale: new THREE.Vector3(6, 6, 6),
+            });
+            this.interactiveObjects.push(this.bed);
             
             // Add ambient light
-            this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
-            this.scene.add(this.ambientLight)
+            this.ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            this.scene.add(this.ambientLight);
             
             // Add directional light
-            this.directionalLight = new THREE.DirectionalLight(0xffffff, 1)
-            this.directionalLight.position.set(5, 5, 5)
-            this.directionalLight.castShadow = true
-            this.directionalLight.shadow.mapSize.width = 1024
-            this.directionalLight.shadow.mapSize.height = 1024
-            this.scene.add(this.directionalLight)
-        })
+            this.directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            this.directionalLight.position.set(5, 5, 5);
+            this.directionalLight.castShadow = true;
+            this.directionalLight.shadow.mapSize.width = 1024;
+            this.directionalLight.shadow.mapSize.height = 1024;
+            this.scene.add(this.directionalLight);
+        });
     }
 
     update() {
-        if(this.cat) {
-            this.cat.update()
+        // Calculate delta time for animations
+        const deltaTime = this.time.delta * 0.001;
+        
+        // Update interaction system
+        if (this.interactionSystem) {
+            this.interactionSystem.update();
+        }
+        
+        // Update cat
+        if (this.cat) {
+            this.cat.update();
             
             // Check if cat is near any interactive objects
-            if(this.interactiveObjects) {
-                for(const object of this.interactiveObjects) {
-                    object.checkProximity(this.cat.model.position)
-                    object.update()
+            if (this.interactiveObjects) {
+                for (const object of this.interactiveObjects) {
+                    object.checkProximity(this.cat.model.position);
+                    object.update(deltaTime);
                 }
             }
         }
-        if(this.toy) this.toy.update()
+        
+        // Update toy
+        if (this.toy) {
+            this.toy.update();
+        }
     }
 }

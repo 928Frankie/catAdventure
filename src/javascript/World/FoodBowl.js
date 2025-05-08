@@ -1,5 +1,6 @@
 // src/javascript/World/FoodBowl.js
 import InteractiveObject from './InteractiveObject.js'
+import * as THREE from 'three'
 
 export default class FoodBowl extends InteractiveObject {
     constructor(world, options = {}) {
@@ -7,24 +8,20 @@ export default class FoodBowl extends InteractiveObject {
         const foodBowlOptions = {
             modelName: 'foodBowlModel',
             position: options.position,
-            scale: options.scale,
+            scale: options.scale || new THREE.Vector3(3, 3, 3),
             rotation: options.rotation,
-            triggerDistance: options.triggerDistance || 1.0,
-            animationName: 'eat'
+            triggerDistance: options.triggerDistance || 1.5,
+            animationName: 'eating',
+            interactionType: 'eat',
+            hintSignModel: options.hintSignModel || 'foodSignModel',
+            //hintSignModel: 'waterSignModel',
         }
         
         super(world, foodBowlOptions)
     }
     
-    onCatEnter() {
-        super.onCatEnter()
-        // Signal to cat to start eating animation
-        this.world.cat.startSpecialAnimation('eat')
-    }
-    
-    onCatLeave() {
-        super.onCatLeave()
-        // Signal to cat to stop eating animation
-        this.world.cat.stopSpecialAnimation()
+    interact() {
+        console.log('Cat is eating from the food bowl');
+        super.interact();
     }
 }

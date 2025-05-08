@@ -1,6 +1,6 @@
 // src/javascript/World/WaterBowl.js
 import InteractiveObject from './InteractiveObject.js'
-
+import * as THREE from 'three'
 export default class WaterBowl extends InteractiveObject {
     constructor(world, options = {}) {
         // Set default options for water bowl
@@ -9,22 +9,18 @@ export default class WaterBowl extends InteractiveObject {
             position: options.position,
             scale: options.scale,
             rotation: options.rotation,
-            triggerDistance: options.triggerDistance || 1.0,
-            animationName: 'drink'
+            triggerDistance: options.triggerDistance || 1.5,
+            animationName: 'drinking',
+            interactionType: 'drink',
+            hintSignModel: 'waterSignModel',
+
         }
         
         super(world, waterBowlOptions)
     }
     
-    onCatEnter() {
-        super.onCatEnter()
-        // Signal to cat to start drinking animation
-        this.world.cat.startSpecialAnimation('drink')
-    }
-    
-    onCatLeave() {
-        super.onCatLeave()
-        // Signal to cat to stop drinking animation
-        this.world.cat.stopSpecialAnimation()
+    interact() {
+        console.log('Cat is drinking from the water bowl');
+        super.interact();
     }
 }

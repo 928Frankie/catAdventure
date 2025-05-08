@@ -32,7 +32,7 @@ export default class Garden {
     setFences() {
         // Simple fence using boxes
         const fenceGeometry = new THREE.BoxGeometry(1, 0.5, 0.1)
-        
+    
         const fenceMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 })
         
         // Create fence around the garden (four sides)

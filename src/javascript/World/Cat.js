@@ -18,14 +18,16 @@ export default class Cat {
 
         this.isInSpecialAnimation = false;
         this.specialAnimationName = null;
-        this.specialAnimationStartTime = 0
-        this.specialAnimationDuration = 3000 // 3 seconds in milliseconds
+
+        this.specialAnimationTimeoutId = null;
+        //this.specialAnimationStartTime = 0
+        //this.specialAnimationDuration = 3000 // 3 seconds in milliseconds
         this.lastMovementState = { 
             position: new THREE.Vector3(), 
             rotation: new THREE.Euler() 
         };
 
-        this.isJumping = false
+        //this.isJumping = false
 
     }
 
@@ -83,6 +85,13 @@ export default class Cat {
         this.animation.actions.current = this.animation.actions.idle
         this.animation.actions.current.play()
     }
+    // Helper method to find animation by name
+    findAnimationByName(name) {
+        const lowerName = name.toLowerCase();
+        return this.resource.animations.find(clip => 
+            clip.name.toLowerCase().includes(lowerName)
+        );
+    }
 
     setMovement() {
         // Keyboard controls for cat movement
@@ -92,32 +101,83 @@ export default class Cat {
             left: false,
             right: false,
             jump: false,
+            interact: false,
         }
         
-        window.addEventListener('keydown', (event) => {
+        /* window.addEventListener('keydown', (event) => {
             switch(event.code) {
                 case 'ArrowUp':
                 case 'KeyW':
                     this.keys.forward = true
-                    break
+                    break;
                 case 'ArrowDown':
                 case 'KeyS':
                     this.keys.backward = true
-                    break
+                    break;
                 case 'ArrowLeft':
                 case 'KeyA':
                     this.keys.left = true
-                    break
+                    break;
                 case 'ArrowRight':
                 case 'KeyD':
                     this.keys.right = true
-                    break
+                    break;
                 case 'Space':
                     this.keys.jump = true 
                     this.performJump()
-                    break
-            }
-        })
+                    break;
+                case 'KeyX':
+                    this.keys.interact = true;
+                    break;
+                }
+        }) */
+
+                window.addEventListener('keydown', (event) => {
+                    switch(event.code) {
+                        case 'ArrowUp':
+                        case 'KeyW':
+                            this.keys.forward = true;
+                            // Exit sleep animation if we're in it
+                            if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping') {
+                                this.stopSpecialAnimation();
+                            }
+                            break;
+                        case 'ArrowDown':
+                        case 'KeyS':
+                            this.keys.backward = true;
+                            // Exit sleep animation if we're in it
+                            if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping') {
+                                this.stopSpecialAnimation();
+                            }
+                            break;
+                        case 'ArrowLeft':
+                        case 'KeyA':
+                            this.keys.left = true;
+                            // Exit sleep animation if we're in it
+                            if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping') {
+                                this.stopSpecialAnimation();
+                            }
+                            break;
+                        case 'ArrowRight':
+                        case 'KeyD':
+                            this.keys.right = true;
+                            // Exit sleep animation if we're in it
+                            if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping') {
+                                this.stopSpecialAnimation();
+                            }
+                            break;
+                        case 'Space':
+                            this.keys.jump = true;
+                            // Exit sleep animation if we're in it
+                            if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping') {
+                                this.stopSpecialAnimation();
+                            }
+                            break;
+                        case 'KeyX':
+                            this.keys.interact = true;
+                            break;
+                    }
+                });
         
         window.addEventListener('keyup', (event) => {
             switch(event.code) {
@@ -139,7 +199,10 @@ export default class Cat {
                     break
                 case 'Space':
                     this.keys.jump = false
-                    break
+                    break;
+                case 'KeyX':
+                    this.keys.interact = false;
+                    break;
             }
         })
     }
@@ -154,6 +217,12 @@ export default class Cat {
         if(this.isInSpecialAnimation && this.specialAnimationName === animationName) {
             return;
         }
+
+        // Cancel any existing animation timeout
+        if(this.specialAnimationTimeoutId) {
+            clearTimeout(this.specialAnimationTimeoutId);
+            this.specialAnimationTimeoutId = null;
+        }
         
         // Save current position and rotation
         this.lastMovementState.position.copy(this.model.position);
@@ -162,26 +231,7 @@ export default class Cat {
         // Find the animation
         let action = null;
         
-        if(animationName === 'sleeping') {
-            // Try to find a suitable sleeping animation
-            if(this.animation.actions.sleeping) {
-                action = this.animation.actions.sleeping;
-            } 
-            // If no specific sleeping animation, you could use rest or idle
-            else if(this.animation.actions.rest) {
-                action = this.animation.actions.rest;
-            }
-            else if(this.animation.actions.idle) {
-                action = this.animation.actions.idle;
-                
-                // Optionally: Adjust the cat model to look like it's sleeping
-                // For example, rotate it to lie down
-                this.model.rotation.z = Math.PI / 2;
-            }
-        }
-
-        // Try exact name match first
-        else if(this.animation.actions[animationName]) {
+        if(this.animation.actions[animationName]) {
             action = this.animation.actions[animationName];
         } 
         // Try case-insensitive search
@@ -194,7 +244,7 @@ export default class Cat {
                 }
             }
         }
-        
+
         // If animation not found, use idle as fallback
         if(!action) {
             console.warn(`Animation '${animationName}' not found, using idle`);
@@ -215,26 +265,34 @@ export default class Cat {
         
         this.isInSpecialAnimation = true;
         this.specialAnimationName = animationName;
-        this.specialAnimationStartTime = Date.now()
-        setTimeout(() => {
-            if (this.isInSpecialAnimation && this.specialAnimationName === animationName) {
-                this.stopSpecialAnimation()
-            }
-        }, this.specialAnimationDuration)
+
         console.log(`Playing special animation: ${animationName}`);
+        
+        this.specialAnimationStartTime = Date.now()
+        // For sleeping animation, we'll keep it going until interaction happens
+        if (animationName !== 'sleeping') {
+            // Auto-exit the animation after a certain time (unless it's sleeping)
+            this.specialAnimationTimeoutId = setTimeout(() => {
+                this.stopSpecialAnimation();
+            }, 5000); // 5 seconds for eating/drinking animations
+        }
+    }
+
+
+    // Method to check if any movement key is pressed
+    isMovementKeyPressed() {
+        return this.keys.forward || this.keys.backward || this.keys.left || this.keys.right || this.keys.jump;
     }
     
     // Method to stop special animation
     stopSpecialAnimation() {
-        const currentTime = Date.now()
-        const elapsedTime = currentTime - this.specialAnimationStartTime
-        if (elapsedTime < this.specialAnimationDuration) {
-            const remainingTime = this.specialAnimationDuration - elapsedTime
-            setTimeout(() => this.stopSpecialAnimation(), remainingTime)
-            return
-        }
-
         if(!this.isInSpecialAnimation) return;
+        
+        // Clear any pending timeout
+        if(this.specialAnimationTimeoutId) {
+            clearTimeout(this.specialAnimationTimeoutId);
+            this.specialAnimationTimeoutId = null;
+        }
         
         this.isInSpecialAnimation = false;
         this.specialAnimationName = null;
@@ -246,7 +304,8 @@ export default class Cat {
             this.animation.actions.current = this.animation.actions.idle;
         }
     }
-    performJump() {
+    
+ /*    performJump() {
         if (this.keys.jump && !this.isJumping) {
             this.isJumping = true;
             
@@ -282,37 +341,27 @@ export default class Cat {
                 });
             }
         }
-    }
+    } */
     
     update() {
         // Update animations
         if(this.animation && this.animation.mixer) {
             this.animation.mixer.update(this.time.delta * 0.001);
         }
-        const isAnyMovementKeyPressed = 
-            this.keys.forward || 
-            this.keys.backward || 
-            this.keys.left || 
-            this.keys.right;
-
-        if(this.isInSpecialAnimation && isAnyMovementKeyPressed) {
-            // Check if minimum animation time has elapsed
-            const currentTime = Date.now()
-            const elapsedTime = currentTime - this.specialAnimationStartTime
-            
-            // Only allow interruption if minimum time has passed
-            if (elapsedTime >= this.specialAnimationDuration) {
-                this.stopSpecialAnimation()
-            }
-        }
 
 
-        if(this.isJumping || this.isInSpecialAnimation) {
-            return
+        if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping' && this.isMovementKeyPressed()) {
+            this.stopSpecialAnimation();
         }
         
+        // Skip movement logic if in special animation (except sleeping that we just handled)
+        if (this.isInSpecialAnimation) {
+            return;
+        }
+
+        
         // Movement logic
-        const speed = 0.03
+        const speed = 0.06
         let isMoving = false
         
         if(this.keys.forward) {
@@ -337,6 +386,44 @@ export default class Cat {
             this.model.position.x += speed
             this.model.rotation.y = Math.PI * 0.5
             isMoving = true
+        }
+
+        if(this.keys.jump && this.animation.actions.jumping) {
+            // Only start jumping if not already in jumping animation
+            if(this.animation.actions.current !== this.animation.actions.jumping) {
+                this.animation.actions.current.fadeOut(0.2);
+                this.animation.actions.jumping.reset().fadeIn(0.2).play();
+                this.animation.actions.current = this.animation.actions.jumping;
+                
+                // Jump effect
+                gsap.to(this.model.position, {
+                    y: 1,
+                    duration: 0.3,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        gsap.to(this.model.position, {
+                            y: 0.1,
+                            duration: 0.3,
+                            ease: "power2.in",
+                            onComplete: () => {
+                                // Go back to idle or walking
+                                if(isMoving) {
+                                    this.animation.actions.current.fadeOut(0.2);
+                                    this.animation.actions.walking.reset().fadeIn(0.2).play();
+                                    this.animation.actions.current = this.animation.actions.walking;
+                                } else {
+                                    this.animation.actions.current.fadeOut(0.2);
+                                    this.animation.actions.idle.reset().fadeIn(0.2).play();
+                                    this.animation.actions.current = this.animation.actions.idle;
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // Don't do any other animation changes
+            return;
         }
         
         // Change animation based on movement

@@ -14,7 +14,9 @@ export default class InteractiveObject {
         this.rotation = options.rotation || new THREE.Euler(0, 0, 0)
         this.triggerDistance = options.triggerDistance || 2
         this.animationName = options.animationName || 'idle'
-        
+        this.interactionType = options.interactionType || 'interact';
+        this.hintSignModel = options.hintSignModel || 'hintSignModel';
+
         this.isActive = false
         
         // Create a container for the model
@@ -34,6 +36,7 @@ export default class InteractiveObject {
             // Create placeholder if model not available
             this.createPlaceholder()
         }
+        this.setupHintSign();
     }
     
     setupTriggerZone() {
@@ -81,7 +84,60 @@ export default class InteractiveObject {
         this.model = new THREE.Mesh(geometry, material)
         this.container.add(this.model)
     }
+    setupHintSign() {
+        // Create a container for the hint sign
+        this.hintSign = new THREE.Group();
+        
+        // Position the hint sign above the object
+        this.hintSign.position.y = 2.5; // Adjust this value as needed
+        // this.hintSign.position.copy(this.hintSignPosition);
+        // this.hintSign.scale.copy(this.hintSignScale);
+        // this.hintSign.rotation.copy(this.hintSignRotation);
+        
+        // If we have a hint sign model in resources, use it
+        if (this.resources.items[this.hintSignModel]) {
+            const hintModel = this.resources.items[this.hintSignModel].scene.clone();
+            this.hintSign.add(hintModel);
+        } else {
+            // Create a simple placeholder hint sign
+            const geometry = new THREE.PlaneGeometry(1, 1);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                side: THREE.DoubleSide
+            });
+            const plane = new THREE.Mesh(geometry, material);
+            // Make it face the camera
+            plane.rotation.x = -Math.PI / 2;
+            this.hintSign.add(plane);
+        }
+        
+        // Set up hint sign animation
+        this.hintSignBobbing = 0;
+        
+        // Hide initially
+        this.hintSign.visible = false;
+        
+        // Add to container
+        this.container.add(this.hintSign);
+    }
     
+    showHintSign() {
+        if (this.hintSign) {
+            this.hintSign.visible = true;
+        }
+    }
+    
+    hideHintSign() {
+        if (this.hintSign) {
+            this.hintSign.visible = false;
+        }
+    }
+
+    getInteractionType() {
+        return this.interactionType;
+    }
+
+
     checkProximity(catPosition) {
         // Calculate world position of this object
         const worldPosition = new THREE.Vector3()
@@ -104,16 +160,45 @@ export default class InteractiveObject {
     }
     
     onCatEnter() {
-        console.log(`Cat entered ${this.constructor.name} zone`)
-        this.isActive = true
+        console.log(`Cat entered ${this.constructor.name} zone`);
+        this.isActive = true;
+        
+        // Notify the interaction system
+        if (this.world.interactionSystem) {
+            this.world.interactionSystem.setActiveObject(this);
+        }
     }
     
     onCatLeave() {
-        console.log(`Cat left ${this.constructor.name} zone`)
-        this.isActive = false
+        console.log(`Cat left ${this.constructor.name} zone`);
+        this.isActive = false;
+        
+        // Stop the animation if it's currently active for this object
+        if (this.world.cat && 
+            this.world.cat.isInSpecialAnimation && 
+            this.world.cat.specialAnimationName === this.animationName) {
+            this.world.cat.stopSpecialAnimation();
+        }
+
+        // Notify the interaction system
+        if (this.world.interactionSystem) {
+            this.world.interactionSystem.clearActiveObject(this);
+}
     }
     
-    update() {
-        // Override in subclass if needed
+    interact() {
+        // Start the cat's special animation for this interaction
+        if (this.world.cat) {
+            this.world.cat.startSpecialAnimation(this.animationName);
+        }
+    }
+    
+    update(deltaTime) {
+
+        // Animate the hint sign if visible (bobbing up and down)
+        if (this.hintSign && this.hintSign.visible) {
+            this.hintSignBobbing += deltaTime * 2;
+            this.hintSign.position.y = 2.5 + Math.sin(this.hintSignBobbing) * 0.1;
+        }
     }
 }

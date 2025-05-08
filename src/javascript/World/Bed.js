@@ -8,28 +8,42 @@ export default class Bed extends InteractiveObject {
         const bedOptions = {
             modelName: 'bedModel',  // This should match the key in your resources items
             position: options.position || new THREE.Vector3(-4, 0, 0),
-            scale: options.scale || new THREE.Vector3(3, 3, 3),
+            scale: options.scale,
             rotation: options.rotation || new THREE.Vector3(0, 0, 0),
-            triggerDistance: options.triggerDistance || 2.0,
-            animationName: 'sleeping'
+            triggerDistance: options.triggerDistance || 3.0,
+            animationName: 'sleeping',
+            interactionType: 'sleep',
+
+            hintSignModel: 'sleepSignModel',
+            //hintSignModel: 'waterSignModel',
         }
         
         super(world, bedOptions)
     }
     
-    onCatEnter() {
-        super.onCatEnter()
-        // Signal to cat to start sleeping animation
-        this.world.cat.startSpecialAnimation('sleeping')
+    interact() {
+        console.log('Cat is sleeping on the bed');
         
-        console.log('Cat is on the bed and sleeping')
+        // Start the sleep animation
+        if (this.world.cat) {
+            this.world.cat.startSpecialAnimation('sleeping');
+        }
     }
     
     onCatLeave() {
-        super.onCatLeave()
-        // Signal to cat to stop sleeping animation
-        this.world.cat.stopSpecialAnimation()
+        console.log(`Cat left ${this.constructor.name} zone`);
+        this.isActive = false;
         
-        console.log('Cat left the bed and woke up')
+        // Stop the sleep animation if the cat is sleeping
+        if (this.world.cat && 
+            this.world.cat.isInSpecialAnimation && 
+            this.world.cat.specialAnimationName === 'sleeping') {
+            this.world.cat.stopSpecialAnimation();
+        }
+        
+        // Notify the interaction system
+        if (this.world.interactionSystem) {
+            this.world.interactionSystem.clearActiveObject(this);
+        }
     }
 }
