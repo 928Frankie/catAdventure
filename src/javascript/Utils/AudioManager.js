@@ -32,7 +32,7 @@ export default class AudioManager extends EventEmitter {
         
         // Cat movement sounds
         this.sounds.walking = new Howl({
-            src: ['./audio/csand-walk-106366.mp3'],
+            src: ['./audio/sand-walk-106366.mp3'],
             volume: this.effectsVolume,
             loop: true,
             autoplay: false,

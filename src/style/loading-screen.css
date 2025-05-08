@@ -1,0 +1,113 @@
+/* src/style/loading-screen.css */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #a1e7fb; /* Same as the clear color in Renderer.js */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loading-screen-content {
+    text-align: center;
+    max-width: 500px;
+    padding: 20px;
+}
+
+.loading-title {
+    font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+    font-size: 44px;
+    color: #333;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
+}
+
+.loading-subtitle {
+    font-family: 'Arial', sans-serif;
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 40px;
+}
+
+.cat-silhouette {
+    width: 150px;
+    height: 150px;
+    background-image: url(../assets/cat.jpg);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-bottom: 30px;
+    animation: bounce 1.5s infinite alternate;
+}
+
+@keyframes bounce {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-15px); }
+}
+
+.loading-bar-container {
+    width: 300px;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.loading-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ff9e7d);
+    border-radius: 10px;
+    transition: width 0.3s ease-out;
+}
+
+.loading-text {
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    color: #555;
+}
+
+.paw-print {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    background-image: url(../assets/cat-paw.eps);
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+}
+
+.loading-tips {
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    color: #555;
+    font-style: italic;
+    margin-top: 30px;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* Create placeholder when SVG isn't found */
+.cat-silhouette::before {
+    content: "🐱";
+    font-size: 80px;
+    display: block;
+}
+
+.paw-print::before {
+    content: "🐾";
+    font-size: 20px;
+}

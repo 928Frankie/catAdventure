@@ -7,6 +7,7 @@ import Renderer from './Renderer.js'
 import World from './World/index.js'
 import Resources from './Resources.js'
 import AudioManager from './Utils/AudioManager.js'
+import LoadingScreen from './UI/LoadingScreen.js'
 
 export default class Application {
     constructor(options) {
@@ -17,6 +18,9 @@ export default class Application {
         this.sizes = new Sizes()
         this.time = new Time()
         this.scene = new THREE.Scene()
+
+        this.loadingScreen = new LoadingScreen()
+
         this.resources = new Resources()
         this.camera = new Camera(this)
         this.renderer = new Renderer(this)
@@ -33,9 +37,17 @@ export default class Application {
             this.update()
         })
 
-        // Start background music once resources are loaded
+/*         // Start background music once resources are loaded
         this.resources.on('ready', () => {
             this.audioManager.startBackgroundMusic()
+        }) */
+
+        this.resources.on('ready', () => {
+            // Give a small delay to ensure everything is initialized
+            setTimeout(() => {
+                this.loadingScreen.hide()
+                this.audioManager.startBackgroundMusic()
+            }, 1000)
         })
     }
 
