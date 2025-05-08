@@ -267,6 +267,38 @@ export default class Cat {
         this.specialAnimationName = animationName;
 
         console.log(`Playing special animation: ${animationName}`);
+
+
+        // Play the corresponding sound effect
+    if (this.world.application.audioManager) {
+        // Stop walking sound first
+        this.world.application.audioManager.stopContinuousSound('walking');
+        
+        // Play the appropriate sound based on the animation
+        switch (animationName) {
+            case 'eating':
+                this.world.application.audioManager.playSound('eating');
+                break;
+            case 'drinking':
+                this.world.application.audioManager.playSound('drinking');
+                break;
+            case 'sleeping':
+                this.world.application.audioManager.playContinuousSound('sleeping');
+                break;
+            case 'jumping':
+                this.world.application.audioManager.playSound('jumping');
+                break;
+            default:
+                // Random meow sound for other animations
+                if (Math.random() > 0.7) { // 30% chance to meow
+                    this.world.application.audioManager.playSound('meow');
+                }
+                break;
+        }
+    }
+
+
+
         
         this.specialAnimationStartTime = Date.now()
         // For sleeping animation, we'll keep it going until interaction happens
@@ -293,6 +325,17 @@ export default class Cat {
             clearTimeout(this.specialAnimationTimeoutId);
             this.specialAnimationTimeoutId = null;
         }
+
+        // Stop the sound associated with the special animation
+    if (this.world.application.audioManager && this.specialAnimationName) {
+        if (this.specialAnimationName === 'sleeping') {
+            this.world.application.audioManager.stopContinuousSound('sleeping');
+        } else {
+            this.world.application.audioManager.stopSound(this.specialAnimationName);
+        }
+    }
+
+
         
         this.isInSpecialAnimation = false;
         this.specialAnimationName = null;

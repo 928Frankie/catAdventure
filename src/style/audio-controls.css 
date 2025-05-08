@@ -1,0 +1,41 @@
+/* src/style/audio-controls.css */
+.audio-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    font-family: Arial, sans-serif;
+}
+
+.audio-button {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: transform 0.2s;
+}
+
+.audio-button:hover {
+    transform: scale(1.1);
+}
+
+.audio-controls input[type="range"] {
+    accent-color: #ff6b6b;
+    width: 100px;
+}
+
+.volume-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.volume-label {
+    color: white;
+    margin-right: 10px;
+}

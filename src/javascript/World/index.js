@@ -7,6 +7,7 @@ import WaterBowl from './WaterBowl.js'
 import FoodBowl from './FoodBowl.js'
 import Bed from './Bed.js'
 import InteractionSystem from './InteractionSystem.js'
+import AudioControls from '../UI/AudioControls.js'
 
 
 export default class World {
@@ -26,6 +27,13 @@ export default class World {
 
         // Wait for resources
         this.resources.on('ready', () => {
+
+            // Initialize audio controls
+            if (this.application.audioManager) {
+                this.audioControls = new AudioControls(this.application.audioManager);
+            }
+        
+
             // Setup interaction system first (other objects will reference it)
             console.log('Setting up interaction system...');
             this.interactionSystem = new InteractionSystem(this);

@@ -68,6 +68,12 @@ export default class Toy {
     playAnimation() {
         if(!this.isAnimating) {
             this.isAnimating = true
+
+                    // Play toy interaction sound
+        if (this.world.application.audioManager) {
+            this.world.application.audioManager.playSound('toyInteraction');
+        }
+        
             
             // Bounce animation
             gsap.to(this.model.position, {
