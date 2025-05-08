@@ -27,6 +27,17 @@ export default class Camera {
     setControls() {
         this.controls = new OrbitControls(this.instance, this.canvas)
         this.controls.enableDamping = true
+
+         // Restrict vertical rotation - ensure camera stays above the platform
+         this.controls.minPolarAngle = 0; // Looking up limit
+         this.controls.maxPolarAngle = Math.PI / 2.5; // Restrict looking down (less than horizontal)
+         
+         // Optional: Restrict zoom 
+         this.controls.minDistance = 5; // Don't get too close
+         this.controls.maxDistance = 30; // Don't go too far
+         
+         // Set target to follow the cat
+         this.followCat = true; // You can toggle this 
     }
 
     resize() {

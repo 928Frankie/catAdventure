@@ -18,11 +18,14 @@ export default class Cat {
 
         this.isInSpecialAnimation = false;
         this.specialAnimationName = null;
+        this.specialAnimationStartTime = 0
+        this.specialAnimationDuration = 3000 // 3 seconds in milliseconds
         this.lastMovementState = { 
             position: new THREE.Vector3(), 
             rotation: new THREE.Euler() 
         };
 
+        this.isJumping = false
 
     }
 
@@ -32,11 +35,23 @@ export default class Cat {
         this.model.scale.set(5, 5, 5)
         this.model.position.y = 0.1  // Slightly above ground
         this.model.castShadow = true
+
+        this.model.renderOrder = 1000;
         
         // Enable shadows for all meshes
         this.model.traverse((child) => {
             if(child instanceof THREE.Mesh) {
-                child.castShadow = true
+                child.castShadow = true;
+                child.receiveShadow = true;
+                child.renderOrder = 1000;
+            }
+            if(child.material) {
+                // Only modify depthWrite if the material has transparency
+                if(child.material.transparent) {
+                    child.material.transparent = true;
+                    child.material.depthWrite = false;
+                }
+                child.material.needsUpdate = true;
             }
         })
         
@@ -61,7 +76,7 @@ export default class Cat {
         this.animation.actions.drinking = this.animation.mixer.clipAction(this.resource.animations[3])
         this.animation.actions.eating = this.animation.mixer.clipAction(this.resource.animations[4])
         this.animation.actions.jumping = this.animation.mixer.clipAction(this.resource.animations[0])
-
+        this.animation.actions.sleeping = this.animation.mixer.clipAction(this.resource.animations[17])
 
 
 
@@ -99,6 +114,8 @@ export default class Cat {
                     break
                 case 'Space':
                     this.keys.jump = true 
+                    this.performJump()
+                    break
             }
         })
         
@@ -119,6 +136,9 @@ export default class Cat {
                 case 'ArrowRight':
                 case 'KeyD':
                     this.keys.right = false
+                    break
+                case 'Space':
+                    this.keys.jump = false
                     break
             }
         })
@@ -142,8 +162,26 @@ export default class Cat {
         // Find the animation
         let action = null;
         
+        if(animationName === 'sleeping') {
+            // Try to find a suitable sleeping animation
+            if(this.animation.actions.sleeping) {
+                action = this.animation.actions.sleeping;
+            } 
+            // If no specific sleeping animation, you could use rest or idle
+            else if(this.animation.actions.rest) {
+                action = this.animation.actions.rest;
+            }
+            else if(this.animation.actions.idle) {
+                action = this.animation.actions.idle;
+                
+                // Optionally: Adjust the cat model to look like it's sleeping
+                // For example, rotate it to lie down
+                this.model.rotation.z = Math.PI / 2;
+            }
+        }
+
         // Try exact name match first
-        if(this.animation.actions[animationName]) {
+        else if(this.animation.actions[animationName]) {
             action = this.animation.actions[animationName];
         } 
         // Try case-insensitive search
@@ -177,12 +215,25 @@ export default class Cat {
         
         this.isInSpecialAnimation = true;
         this.specialAnimationName = animationName;
-        
+        this.specialAnimationStartTime = Date.now()
+        setTimeout(() => {
+            if (this.isInSpecialAnimation && this.specialAnimationName === animationName) {
+                this.stopSpecialAnimation()
+            }
+        }, this.specialAnimationDuration)
         console.log(`Playing special animation: ${animationName}`);
     }
     
     // Method to stop special animation
     stopSpecialAnimation() {
+        const currentTime = Date.now()
+        const elapsedTime = currentTime - this.specialAnimationStartTime
+        if (elapsedTime < this.specialAnimationDuration) {
+            const remainingTime = this.specialAnimationDuration - elapsedTime
+            setTimeout(() => this.stopSpecialAnimation(), remainingTime)
+            return
+        }
+
         if(!this.isInSpecialAnimation) return;
         
         this.isInSpecialAnimation = false;
@@ -195,20 +246,73 @@ export default class Cat {
             this.animation.actions.current = this.animation.actions.idle;
         }
     }
+    performJump() {
+        if (this.keys.jump && !this.isJumping) {
+            this.isJumping = true;
+            
+            // Play jumping animation
+            if (this.animation && this.animation.actions && this.animation.actions.jumping) {
+                this.animation.actions.current.fadeOut(0.2);
+                this.animation.actions.jumping.reset().fadeIn(0.2).play();
+                this.animation.actions.current = this.animation.actions.jumping;
+                
+                // Store original Y position
+                const originalY = this.model.position.y;
+                
+                // Jump animation with GSAP
+                gsap.to(this.model.position, {
+                    y: originalY + 1.5, // Jump height
+                    duration: 0.4,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        gsap.to(this.model.position, {
+                            y: originalY,
+                            duration: 0.4,
+                            ease: "power3.in",
+                            onComplete: () => {
+                                this.isJumping = false;
+                                
+                                // Return to idle animation
+                                this.animation.actions.current.fadeOut(0.2);
+                                this.animation.actions.idle.reset().fadeIn(0.2).play();
+                                this.animation.actions.current = this.animation.actions.idle;
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    }
     
     update() {
         // Update animations
         if(this.animation && this.animation.mixer) {
             this.animation.mixer.update(this.time.delta * 0.001);
         }
-        
-        if(this.isInSpecialAnimation) {
-            return;
+        const isAnyMovementKeyPressed = 
+            this.keys.forward || 
+            this.keys.backward || 
+            this.keys.left || 
+            this.keys.right;
+
+        if(this.isInSpecialAnimation && isAnyMovementKeyPressed) {
+            // Check if minimum animation time has elapsed
+            const currentTime = Date.now()
+            const elapsedTime = currentTime - this.specialAnimationStartTime
+            
+            // Only allow interruption if minimum time has passed
+            if (elapsedTime >= this.specialAnimationDuration) {
+                this.stopSpecialAnimation()
+            }
         }
-    
+
+
+        if(this.isJumping || this.isInSpecialAnimation) {
+            return
+        }
         
         // Movement logic
-        const speed = 0.05
+        const speed = 0.03
         let isMoving = false
         
         if(this.keys.forward) {

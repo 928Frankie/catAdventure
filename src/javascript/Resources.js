@@ -33,7 +33,7 @@ export default class Resources extends EventEmitter {
         // Load cat model
         this.toLoad++
         this.loaders.gltfLoader.load(
-            './models/orange_cat_animated.glb',
+            './models/orange_cat.glb',
             (file) => {
                 this.items.catModel = file
                 this.loaded++
@@ -44,7 +44,7 @@ export default class Resources extends EventEmitter {
          // Load grass texture
         this.toLoad++
         this.loaders.textureLoader.load(
-            './textures/47056.jpg',
+            './textures/grass-large.png',
             (file) => {
                 this.items.grassTexture = file
                 this.loaded++
@@ -65,7 +65,7 @@ export default class Resources extends EventEmitter {
 
         this.toLoad++
         this.loaders.gltfLoader.load(
-            './models/pet-bowl.glb',
+            './models/water-bowl.glb',
             (file) => {
                 this.items.waterBowlModel = file
                 this.loaded++
@@ -76,14 +76,25 @@ export default class Resources extends EventEmitter {
 
         this.toLoad++
         this.loaders.gltfLoader.load(
-            './models/bowl.glb',
+            './models/double-bowl.glb',
             (file) => {
                 this.items.foodBowlModel = file
                 this.loaded++
                 this.checkAllLoaded()
             }
         )
+
         // Load food bowl model
+
+        this.toLoad++
+        this.loaders.gltfLoader.load(
+            './models/cat-bed-icon.glb',  // Path to your bed model
+            (file) => {
+                this.items.bedModel = file
+                this.loaded++
+                this.checkAllLoaded()
+    }
+)
     }
 
     checkAllLoaded() {

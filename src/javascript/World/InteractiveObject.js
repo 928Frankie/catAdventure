@@ -55,11 +55,14 @@ export default class InteractiveObject {
         // Clone the model from resources
         this.model = this.resources.items[this.modelName].scene.clone()
         
+        this.model.renderOrder = 1;
+
         // Enable shadows
         this.model.traverse((child) => {
             if(child instanceof THREE.Mesh) {
-                child.castShadow = true
-                child.receiveShadow = true
+                child.castShadow = true;
+                child.receiveShadow = true;
+                child.renderOrder = 1;
             }
         })
         

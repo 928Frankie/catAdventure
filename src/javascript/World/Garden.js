@@ -36,7 +36,7 @@ export default class Garden {
         const fenceMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513 })
         
         // Create fence around the garden (four sides)
-        const fenceSize = 10;
+        const fenceSize = 20;
         
         // Front fence
         for(let i = -fenceSize; i <= fenceSize; i+=2) {
