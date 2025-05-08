@@ -65,7 +65,7 @@ export default class Toy {
         this.isAnimating = false
     }
 
-    playAnimation() {
+/*     playAnimation() {
         if(!this.isAnimating) {
             this.isAnimating = true
 
@@ -99,8 +99,51 @@ export default class Toy {
                 ease: "power2.inOut"
             })
         }
-    }
+    } */
 
+
+         playAnimation() {
+        if(!this.isAnimating) {
+            this.isAnimating = true
+
+            // Play toy interaction sound
+            if (this.world.application.audioManager) {
+                this.world.application.audioManager.playSound('toyInteraction');
+            }
+
+            // Signal the cat to come to the toy
+            if (this.world.cat) {
+                // Call the cat to come to the toy
+                this.world.cat.moveToTarget(this.model.position, 'jumping');
+                console.log("Calling cat to play with toy");
+            }
+            
+            // Bounce animation
+            gsap.to(this.model.position, {
+                y: 1,
+                duration: 0.5,
+                ease: "power2.out",
+                onComplete: () => {
+                    gsap.to(this.model.position, {
+                        y: 0,
+                        duration: 0.5,
+                        ease: "bounce.out",
+                        onComplete: () => {
+                            this.isAnimating = false
+                        }
+                    })
+                }
+            })
+            
+            // Spin animation
+            gsap.to(this.model.rotation, {
+                y: this.model.rotation.y + Math.PI * 2,
+                duration: 1,
+                ease: "power2.inOut"
+            })
+        }
+    }
+    
     update() {
         // Update the interaction sphere position to match the toy
         this.interactionSphere.position.copy(this.model.position)

@@ -11,6 +11,11 @@ export default class Cat {
         
         // Set up
         this.resource = this.resources.items.catModel
+
+        // Initialize target movement properties
+        this.isMovingToTarget = false
+        this.targetPosition = null
+        this.pendingInteractionType = null
         
         this.setModel()
         this.setAnimation()
@@ -207,6 +212,36 @@ export default class Cat {
         })
     }
 
+    moveToTarget(targetPosition, interactionType) {
+        // Store the target position
+        this.targetPosition = targetPosition.clone();
+        
+        // Remember the interaction type for when we reach the target
+        this.pendingInteractionType = interactionType || null;
+        
+        // Set a flag indicating we're moving to a target
+        this.isMovingToTarget = true;
+        
+        // Exit any special animation if we're in one
+        if (this.isInSpecialAnimation) {
+            this.stopSpecialAnimation();
+        }
+        
+        // Start the walking animation
+        if (this.animation && this.animation.actions) {
+            this.animation.actions.current.fadeOut(0.5);
+            this.animation.actions.walking.reset().fadeIn(0.5).play();
+            this.animation.actions.current = this.animation.actions.walking;
+        }
+        
+        // Play walking sound
+        if (this.world.application.audioManager) {
+            this.world.application.audioManager.playContinuousSound('walking');
+        }
+        
+        console.log("Cat is moving to target:", targetPosition);
+    }
+
     startSpecialAnimation(animationName) {
         if(!this.animation || !this.animation.actions) {
             console.warn('No animations available for special animation: ' + animationName);
@@ -392,6 +427,56 @@ export default class Cat {
             this.animation.mixer.update(this.time.delta * 0.001);
         }
 
+                // Handle autonomous movement to target
+                if (this.isMovingToTarget && this.targetPosition) {
+                    // Calculate direction to target
+                    const direction = new THREE.Vector3();
+                    direction.subVectors(this.targetPosition, this.model.position);
+                    
+                    // Normalize for consistent speed (but only if distance is significant)
+                    const distanceToTarget = this.model.position.distanceTo(this.targetPosition);
+                    
+                    // If we're close enough to the target, stop moving and perform the interaction
+                    if (distanceToTarget < 1.0) {  // Threshold to consider "arrived"
+                        this.isMovingToTarget = false;
+                        this.targetPosition = null;
+                        
+                        // Stop walking sound
+                        if (this.world.application.audioManager) {
+                            this.world.application.audioManager.stopContinuousSound('walking');
+                        }
+                        
+                        // If there's a pending interaction, perform it
+                        if (this.pendingInteractionType) {
+                            this.startSpecialAnimation(this.pendingInteractionType);
+                            this.pendingInteractionType = null;
+                        } else {
+                            // Switch to idle animation if no pending interaction
+                            if (!this.isInSpecialAnimation && this.animation && this.animation.actions) {
+                                this.animation.actions.current.fadeOut(0.5);
+                                this.animation.actions.idle.reset().fadeIn(0.5).play();
+                                this.animation.actions.current = this.animation.actions.idle;
+                            }
+                        }
+                        
+                        return;
+                    }
+                    
+                    // Only normalize if we're not already very close
+                    direction.normalize();
+                    
+                    // Move towards the target
+                    const speed = 0.06; // Same speed as keyboard movement
+                    this.model.position.x += direction.x * speed;
+                    this.model.position.z += direction.z * speed;
+                    
+                    // Rotate cat to face the direction of movement
+                    this.model.rotation.y = Math.atan2(direction.x, direction.z);
+                    
+                    // Return to skip keyboard controls while in autonomous movement
+                    return;
+                }
+        
 
         if (this.isInSpecialAnimation && this.specialAnimationName === 'sleeping' && this.isMovementKeyPressed()) {
             this.stopSpecialAnimation();
@@ -470,7 +555,7 @@ export default class Cat {
         }
         
         // Change animation based on movement
-        if(this.animation && 
+/*         if(this.animation && 
             this.animation.actions && 
             this.animation.actions.idle && 
             this.animation.actions.walking) {
@@ -489,6 +574,37 @@ export default class Cat {
                  this.animation.actions.idle.reset().fadeIn(0.5).play();
                  this.animation.actions.current = this.animation.actions.idle;
              }
-        }
+        } */
+
+             if(this.animation && 
+                this.animation.actions && 
+                this.animation.actions.idle && 
+                this.animation.actions.walking) {
+                 
+                 // If moving and not already in walking animation
+                 if(isMoving && this.animation.actions.current !== this.animation.actions.walking) {
+                     // Switch to walking animation with crossfade
+                     this.animation.actions.current.fadeOut(0.5);
+                     this.animation.actions.walking.reset().fadeIn(0.5).play();
+                     this.animation.actions.current = this.animation.actions.walking;
+                     
+                     // Play walking sound
+                     if (this.world.application.audioManager) {
+                         this.world.application.audioManager.playContinuousSound('walking');
+                     }
+                 }
+                 // If not moving and not already in idle animation
+                 else if(!isMoving && this.animation.actions.current !== this.animation.actions.idle) {
+                     // Switch back to idle animation with crossfade
+                     this.animation.actions.current.fadeOut(0.5);
+                     this.animation.actions.idle.reset().fadeIn(0.5).play();
+                     this.animation.actions.current = this.animation.actions.idle;
+                     
+                     // Stop walking sound
+                     if (this.world.application.audioManager) {
+                         this.world.application.audioManager.stopContinuousSound('walking');
+                     }
+                 }
+            }
     }
 }
