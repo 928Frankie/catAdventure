@@ -116,8 +116,7 @@ export default class Resources extends EventEmitter {
 
         this.toLoad++
         this.loaders.gltfLoader.load(
-            //'./models/signs/pumping_heart_model.glb',
-            './models/signs/exclamation_point.glb',
+            './models/signs/pumping_heart_model.glb',
             (file) => {
                 this.items.foodSignModel = file
                 this.loaded++
@@ -128,8 +127,7 @@ export default class Resources extends EventEmitter {
         // Sleep hint sign
         this.toLoad++
         this.loaders.gltfLoader.load(
-            //'./models/signs/pumping_heart_model.glb',
-            './models/signs/exclamation_point.glb',
+            './models/signs/question_3d_icon.glb',
             (file) => {
                 this.items.sleepSignModel = file
                 this.loaded++
