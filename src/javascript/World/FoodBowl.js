@@ -13,8 +13,14 @@ export default class FoodBowl extends InteractiveObject {
             triggerDistance: options.triggerDistance || 1.5,
             animationName: 'eating',
             interactionType: 'eat',
-            hintSignModel: options.hintSignModel || 'foodSignModel',
+
+            hintSignModel: 'foodSignModel',
             //hintSignModel: 'waterSignModel',
+
+            hintSignPosition: options.hintSignPosition,
+            hintSignScale: options.hintSignScale,
+            hintSignRotation: options.hintSignRotation,
+            //hintSignColor: options.hintSignColor || 0xff8800 // Default orange for food
         }
         
         super(world, foodBowlOptions)

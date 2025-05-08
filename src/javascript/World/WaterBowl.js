@@ -14,6 +14,10 @@ export default class WaterBowl extends InteractiveObject {
             interactionType: 'drink',
             hintSignModel: 'waterSignModel',
 
+            hintSignPosition: options.hintSignPosition || new THREE.Vector3(0, 5, 0),
+            hintSignScale: options.hintSignScale || new THREE.Vector3(1, 1, 1),
+            hintSignRotation: options.hintSignRotation || new THREE.Euler(0, 0, 0),
+
         }
         
         super(world, waterBowlOptions)

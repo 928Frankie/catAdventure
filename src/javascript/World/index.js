@@ -17,6 +17,13 @@ export default class World {
         this.time = this.application.time;
         this.camera = this.application.camera;
 
+        // Add debug flag
+        this.debug = {
+            showHintSigns: false,
+            showTriggerZones: false,
+        };
+        
+
         // Wait for resources
         this.resources.on('ready', () => {
             // Setup interaction system first (other objects will reference it)
@@ -41,13 +48,22 @@ export default class World {
             this.waterBowl = new WaterBowl(this, {
                 position: new THREE.Vector3(10, 0, 2),
                 scale: new THREE.Vector3(0.3, 0.3, 0.3),
+
+                hintSignPosition: new THREE.Vector3(0, 3.0, 0), // Higher position
+                hintSignScale: new THREE.Vector3(1.5, 1.5, 1.5), // Larger scale
             });
             this.interactiveObjects.push(this.waterBowl);
             
             // Create food bowl
             this.foodBowl = new FoodBowl(this, {
+
                 position: new THREE.Vector3(-6, 0, 2),
                 scale: new THREE.Vector3(8, 8, 8),
+
+                hintSignPosition: new THREE.Vector3(0, 0.2, 0), // Slightly forward and lower
+                hintSignScale: new THREE.Vector3(0.004,0.004, 0.004), // Slightly larger
+                hintSignColor: 0xff8800 // Orange color for food
+
             });
             this.interactiveObjects.push(this.foodBowl);
             
@@ -55,6 +71,12 @@ export default class World {
             this.bed = new Bed(this, {
                 position: new THREE.Vector3(0, 0, -10),
                 scale: new THREE.Vector3(6, 6, 6),
+
+                hintSignPosition: new THREE.Vector3(0, 0.4, 0), // Lower position
+                hintSignScale: new THREE.Vector3(0.1, 0.1, 0.1), // Much larger
+                //hintSignRotation: new THREE.Euler(-Math.PI/2, 0, Math.PI/4), // Rotated 45 degrees
+                hintSignRotation: new THREE.Euler(Math.PI/2, 0, 0),
+                hintSignColor: 0x9b59b6 // Purple color for sleep
             });
             this.interactiveObjects.push(this.bed);
             

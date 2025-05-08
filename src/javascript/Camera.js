@@ -29,10 +29,12 @@ export default class Camera {
         this.controls.enableDamping = true
 
          // Restrict vertical rotation - ensure camera stays above the platform
+
          this.controls.minPolarAngle = 0; // Looking up limit
          this.controls.maxPolarAngle = Math.PI / 2.5; // Restrict looking down (less than horizontal)
          
          // Optional: Restrict zoom 
+         //debug use: turn off
          this.controls.minDistance = 5; // Don't get too close
          this.controls.maxDistance = 30; // Don't go too far
          

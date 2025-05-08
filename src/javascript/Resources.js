@@ -44,7 +44,7 @@ export default class Resources extends EventEmitter {
          // Load grass texture
         this.toLoad++
         this.loaders.textureLoader.load(
-            './textures/grass-large.png',
+            './textures/47056.jpg',
             (file) => {
                 this.items.grassTexture = file
                 this.loaded++
@@ -114,6 +114,7 @@ export default class Resources extends EventEmitter {
             }
         )
 
+        //food sign model
         this.toLoad++
         this.loaders.gltfLoader.load(
             './models/signs/pumping_heart_model.glb',

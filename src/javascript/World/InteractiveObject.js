@@ -17,6 +17,21 @@ export default class InteractiveObject {
         this.interactionType = options.interactionType || 'interact';
         this.hintSignModel = options.hintSignModel || 'hintSignModel';
 
+
+        // Sign options (NEW)
+        this.hintSignModel = options.hintSignModel || 'hintSignModel';
+        this.hintSignPosition = options.hintSignPosition || new THREE.Vector3(0, 2.5, 0);
+        this.hintSignScale = options.hintSignScale || new THREE.Vector3(1, 1, 1);
+        this.hintSignRotation = options.hintSignRotation || new THREE.Euler(0, 0, 0);
+        this.hintSignColor = options.hintSignColor || 0xffff00; // Yellow by default
+
+
+        // this.hintSignModel = options.hintSignModel ;
+        // this.hintSignPosition = options.hintSignPosition ;
+        // this.hintSignScale = options.hintSignScale;
+        // this.hintSignRotation = options.hintSignRotation;
+        //this.hintSignColor = options.hintSignColor; // Yellow by default
+
         this.isActive = false
         
         // Create a container for the model
@@ -50,7 +65,9 @@ export default class InteractiveObject {
                 opacity: 0.1
             })
         )
-        this.triggerZone.visible = this.world.debug ? true : false
+        //debug flag
+        //this.triggerZone.visible = this.world.debug ? true : false
+        this.triggerZone.visible = this.world.debug.showTriggerZones || false
         this.container.add(this.triggerZone)
     }
     
@@ -87,13 +104,33 @@ export default class InteractiveObject {
     setupHintSign() {
         // Create a container for the hint sign
         this.hintSign = new THREE.Group();
-        
+        this.hintSign.renderOrder = 10; 
+
         // Position the hint sign above the object
-        this.hintSign.position.y = 2.5; // Adjust this value as needed
-        // this.hintSign.position.copy(this.hintSignPosition);
-        // this.hintSign.scale.copy(this.hintSignScale);
-        // this.hintSign.rotation.copy(this.hintSignRotation);
+        //this.hintSign.position.y = 2.5; // Adjust this value as needed
+        // Set position, scale, and rotation (with defaults)
+        this.hintSign.position.y = 2.5 / this.container.scale.y;
+
+        const defaultY = 2.5 / this.container.scale.y;
+    
+        if (this.hintSignPosition) {
+            this.hintSign.position.copy(this.hintSignPosition);
+        } else {
+            this.hintSign.position.set(0, defaultY, 0);
+        }
         
+        if (this.hintSignScale) {
+            this.hintSign.scale.copy(this.hintSignScale);
+        }
+        
+        if (this.hintSignRotation) {
+            this.hintSign.rotation.copy(this.hintSignRotation);
+        }
+        
+        // Store the original position for animation reference
+        this.hintSignBaseY = this.hintSign.position.y;
+        
+
         // If we have a hint sign model in resources, use it
         if (this.resources.items[this.hintSignModel]) {
             const hintModel = this.resources.items[this.hintSignModel].scene.clone();
@@ -115,8 +152,19 @@ export default class InteractiveObject {
         this.hintSignBobbing = 0;
         
         // Hide initially
+
         this.hintSign.visible = false;
+
+        //debug use
+        //this.hintSign.visible = true;
+        this.hintSign.visible = this.world.debug.showHintSigns;
         
+        console.log(`Setting up hint sign for ${this.constructor.name}:`);
+        console.log(`- Position: ${JSON.stringify(this.hintSignPosition)}`);
+        console.log(`- Scale: ${JSON.stringify(this.hintSignScale)}`);
+        console.log(`- Rotation: ${JSON.stringify(this.hintSignRotation)}`);
+        console.log(`- Model: ${this.hintSignModel}`);
+
         // Add to container
         this.container.add(this.hintSign);
     }
@@ -193,12 +241,21 @@ export default class InteractiveObject {
         }
     }
     
-    update(deltaTime) {
+    // update(deltaTime) {
 
+    //     // Animate the hint sign if visible (bobbing up and down)
+    //     if (this.hintSign && this.hintSign.visible) {
+    //         this.hintSignBobbing += deltaTime * 2;
+    //         this.hintSign.position.y = 2.5 + Math.sin(this.hintSignBobbing) * 0.1;
+    //     }
+    // }
+
+    update(deltaTime) {
         // Animate the hint sign if visible (bobbing up and down)
         if (this.hintSign && this.hintSign.visible) {
             this.hintSignBobbing += deltaTime * 2;
-            this.hintSign.position.y = 2.5 + Math.sin(this.hintSignBobbing) * 0.1;
+            // Use the stored base Y position, not a hardcoded value
+            this.hintSign.position.y = this.hintSignBaseY + Math.sin(this.hintSignBobbing) * 0.1;
         }
     }
 }

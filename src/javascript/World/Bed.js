@@ -16,6 +16,11 @@ export default class Bed extends InteractiveObject {
 
             hintSignModel: 'sleepSignModel',
             //hintSignModel: 'waterSignModel',
+
+            hintSignPosition: options.hintSignPosition || new THREE.Vector3(0, 2.5, 0),
+            hintSignScale: options.hintSignScale || new THREE.Vector3(1, 1, 1),
+            hintSignRotation: options.hintSignRotation || new THREE.Euler(0, 0, 0),
+            hintSignColor: options.hintSignColor || 0xff8800 // Default orange for food
         }
         
         super(world, bedOptions)
@@ -29,7 +34,7 @@ export default class Bed extends InteractiveObject {
             this.world.cat.startSpecialAnimation('sleeping');
         }
     }
-    
+
     onCatLeave() {
         console.log(`Cat left ${this.constructor.name} zone`);
         this.isActive = false;
