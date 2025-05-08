@@ -20,9 +20,12 @@ export default class Cat {
         this.setModel()
         this.setAnimation()
         this.setMovement()
+        this.setClickInteraction();
 
         this.isInSpecialAnimation = false;
         this.specialAnimationName = null;
+
+        
 
         this.specialAnimationTimeoutId = null;
         //this.specialAnimationStartTime = 0
@@ -84,12 +87,57 @@ export default class Cat {
         this.animation.actions.eating = this.animation.mixer.clipAction(this.resource.animations[4])
         this.animation.actions.jumping = this.animation.mixer.clipAction(this.resource.animations[0])
         this.animation.actions.sleeping = this.animation.mixer.clipAction(this.resource.animations[17])
+        this.animation.actions.scratching = this.animation.mixer.clipAction(this.resource.animations[11])
+        this.animation.actions.meerkating = this.animation.mixer.clipAction(this.resource.animations[8])
+
+
+
 
 
 
         this.animation.actions.current = this.animation.actions.idle
         this.animation.actions.current.play()
     }
+
+    setClickInteraction() {
+        // Create a raycaster for click detection
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+        
+        // Add click event listener
+        window.addEventListener('click', (event) => {
+            // Calculate mouse position in normalized device coordinates
+            this.mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            this.mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            // Update the raycaster
+            this.raycaster.setFromCamera(this.mouse, this.world.application.camera.instance);
+            
+            // Check for intersections with the cat model
+            const intersects = this.raycaster.intersectObject(this.model, true);
+            
+            if (intersects.length > 0) {
+                // Cat was clicked!
+                this.onCatClick();
+            }
+        });
+    }
+
+    onCatClick() {
+        console.log('Cat was clicked!');
+        
+        // Don't trigger if already in special animation
+        if (this.isInSpecialAnimation) return;
+        
+        // Play meow sound
+        if (this.world.application.audioManager) {
+            this.world.application.audioManager.playSound('meow');
+        }
+        
+        // Start scratching animation
+        this.startSpecialAnimation('scratching');
+    }
+    
     // Helper method to find animation by name
     findAnimationByName(name) {
         const lowerName = name.toLowerCase();
@@ -242,6 +290,8 @@ export default class Cat {
         console.log("Cat is moving to target:", targetPosition);
     }
 
+
+    
     startSpecialAnimation(animationName) {
         if(!this.animation || !this.animation.actions) {
             console.warn('No animations available for special animation: ' + animationName);
@@ -322,6 +372,13 @@ export default class Cat {
                 break;
             case 'jumping':
                 this.world.application.audioManager.playSound('jumping');
+                break;
+            case 'scratching':
+                // For scratching, we've already played the meow sound in onCatClick
+                break;
+            case 'meerkating':
+                // Play meow sound for meerkating as well
+                this.world.application.audioManager.playSound('meow');
                 break;
             default:
                 // Random meow sound for other animations

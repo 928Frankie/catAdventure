@@ -114,7 +114,8 @@ export default class Toy {
             // Signal the cat to come to the toy
             if (this.world.cat) {
                 // Call the cat to come to the toy
-                this.world.cat.moveToTarget(this.model.position, 'jumping');
+                //this.world.cat.moveToTarget(this.model.position, 'jumping');
+                this.world.cat.moveToTarget(this.model.position, 'meerkating');
                 console.log("Calling cat to play with toy");
             }
             
@@ -143,7 +144,7 @@ export default class Toy {
             })
         }
     }
-    
+
     update() {
         // Update the interaction sphere position to match the toy
         this.interactionSphere.position.copy(this.model.position)
